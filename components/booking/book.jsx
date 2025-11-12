@@ -12,6 +12,15 @@ export default function BookForm() {
     const body = Object.fromEntries(form);
 
     try {
+      // First, check if the email exists
+      const checkEmailRes = await fetch(`/api/booking/check-email?email=${body.email}`);
+      const { exists } = await checkEmailRes.json();
+
+      if (exists) {
+        toast.error("You got a ticket already with this email. Please check your inbox.");
+        setLoading(false);
+        return; // stop further submission
+      }
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -23,18 +32,18 @@ export default function BookForm() {
         })
       });
 
+       
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Server ${res.status}: ${text}`);
       }
 
       const data = await res.json();
-      console.log("Booking created:", data);
       toast("Booking successful! QR sent to your email.", { type: "success" });
       e.target.reset();
     } catch (err) {
       console.error(err);
-      toast("Booking failed: " + err.message, { type: "error" });
+      toast("Booking failed to create. Please try again.", { type: "error"} );
     } finally {
       setLoading(false);
     }
