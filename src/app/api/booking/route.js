@@ -41,7 +41,7 @@ export async function POST(req) {
     await booking.save();
 
     // 5) Create check-in URL and QR data URL (small size)
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "ict-gettogether.vercel.app";
+    const base = process.env.NEXT_PUBLIC_BASE_URL || "https://ict-gettogether.vercel.app";
     const checkinUrl = `${base}/checkin?token=${token}`;
     const qrDataUrl = await QRCode.toDataURL(checkinUrl, { width: 300 }); // smaller image
 
