@@ -1,0 +1,9 @@
+// src/models/counter.js
+import mongoose from "mongoose";
+
+const CounterSchema = new mongoose.Schema({
+  _id: { type: String, required: true }, // use a name like "booking" or "ticket"
+  seq: { type: Number, default: 0 }
+});
+
+export default mongoose.models.Counter || mongoose.model("Counter", CounterSchema);

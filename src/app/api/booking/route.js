@@ -1,10 +1,16 @@
 // src/app/api/booking/route.js
 import dbConnect from "../../lib/mongoose";
 import Booking from "../../models/booking";
+import Counter from "../../models/counter";
 import jwt from "jsonwebtoken";
 import QRCode from "qrcode";
 import nodemailer from "nodemailer";
 
+function formatTicketNumber(seq) {
+  // Example: GT2025-000123  -> prefix + year + zero-padded seq
+  const year = new Date().getFullYear();
+  return `GT${year}-${String(seq).padStart(6, "0")}`;
+}
 export async function POST(req) {
   try {
     // 1) DB connect
@@ -21,13 +27,22 @@ export async function POST(req) {
       });
     }
 
+    const counterDoc = await Counter.findOneAndUpdate(
+      { _id: "booking" },         // counter key
+      { $inc: { seq: 1 } },      // atomic increment
+      { new: true, upsert: true } // create if missing and return the updated doc
+    ).lean();
+
+    const seq = counterDoc.seq || 1;
+    const ticketNumber = formatTicketNumber(seq);
     // 3) Create booking
     const booking = await Booking.create({
       firstname,
       lastname,
       email,
       phone,
-      paymentStatus: "pending"
+      paymentStatus: "pending",
+      ticketNumber
     });
 
     // 4) Create signed JWT token referencing booking id
@@ -68,19 +83,91 @@ export async function POST(req) {
     const base64 = qrDataUrl.split(",")[1];
     const imgBuffer = Buffer.from(base64, "base64");
 
+    // 8) HTML design — email-safe (tables + inline styles). Keeps your variables unchanged.
+    const htmlBody = `
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width" />
+        </head>
+        <body style="margin:0;padding:0;background:#f3f4f6;font-family: Arial, Helvetica, sans-serif;color:#111;">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td align="center" style="padding:28px 12px;">
+                <!-- Card container -->
+                <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;background:#ffffff;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.08);overflow:hidden;">
+                  <tr>
+                    <td style="padding:22px 24px;">
+                      <!-- Header -->
+                      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td style="font-size:18px;font-weight:600;color:#0f172a;padding-bottom:8px;">
+                            Hi ${firstname || "Guest"},
+                          </td>
+                          <td align="right" style="font-size:12px;color:#9ca3af;">
+                            GateTogether
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Body text -->
+                      <p style="margin:12px 0 20px;line-height:1.5;color:#334155;font-size:15px;">
+                        Thank you for registering. Please present this QR code at the gate.
+                      </p>
+
+                      <!-- Centered QR block -->
+                      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f8fafc;border-radius:10px;padding:16px;text-align:center;">
+                        <tr>
+                          <td style="padding:8px 0;">
+                            <img
+                              src="cid:qr@gatetogether"
+                              alt="QR Code"
+                              style="display:block;margin:0 auto;max-width:260px;height:auto;border-radius:8px;border:1px solid rgba(2,6,23,0.06);"
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding-top:10px;font-size:13px;color:#64748b;">
+                            Present this QR at the gate for check-in
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Fallback link -->
+                      <p style="margin:18px 0 0;font-size:14px;color:#475569;line-height:1.45;">
+                        If the image does not display, open this link:
+                        <a href="${checkinUrl}" style="color:#0369a1;text-decoration:none;font-weight:600;">Check-In</a>
+                      </p>
+
+                      <!-- Signature -->
+                      <p style="margin:18px 0 0;color:#475569;font-size:14px;line-height:1.4;">
+                        Regards,<br/>
+                        <strong style="color:#0f172a;">GateTogether</strong>
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Footer small note -->
+                  <tr>
+                    <td align="center" style="padding:12px 16px;background:#fbfdff;font-size:12px;color:#9ca3af;">
+                      Please present this QR at the gate. If you have questions, reply to this email.
+                    </td>
+                  </tr>
+                </table>
+                <!-- end card -->
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+
     const mailOptions = {
       from: process.env.FROM_EMAIL,
       to: email,
       subject: "Your GateTogether QR Ticket",
-      html: `
-        <div style="font-family: Arial, Helvetica, sans-serif; color:#111;">
-          <p>Hi ${firstname || "Guest"},</p>
-          <p>Thank you for registering. Please present this QR code at the gate.</p>
-          <p><img src="cid:qr@gatetogether" style="max-width:300px; height:auto; display:block;" alt="QR Code" /></p>
-          <p>If the image does not display, open this link: <a href="${checkinUrl}">Check-In</a></p>
-          <p>Regards,<br/>GateTogether</p>
-        </div>
-      `,
+      html: htmlBody,
       attachments: [
         {
           filename: "qrcode.png",
@@ -90,7 +177,7 @@ export async function POST(req) {
       ]
     };
 
-    // 8) Send email (catch errors separately)
+    // 9) Send email (catch errors separately)
     try {
       await transporter.sendMail(mailOptions);
     } catch (mailErr) {
@@ -107,7 +194,7 @@ export async function POST(req) {
       );
     }
 
-    // 9) Success response
+    // 10) Success response
     return new Response(
       JSON.stringify({ ok: true, bookingId: booking._id, qrDataUrl }),
       { status: 201, headers: { "Content-Type": "application/json" } }
