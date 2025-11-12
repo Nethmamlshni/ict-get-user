@@ -34,14 +34,14 @@ export async function POST(req) {
     const token = jwt.sign(
       { id: booking._id.toString(), email },
       process.env.JWT_SECRET,
-      { expiresIn: "30d" } // change expiry to event date if needed
+      { expiresIn: "300d" } // change expiry to event date if needed
     );
 
     booking.qrToken = token;
     await booking.save();
 
     // 5) Create check-in URL and QR data URL (small size)
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const base = process.env.NEXT_PUBLIC_BASE_URL || "ict-gettogether.vercel.app";
     const checkinUrl = `${base}/checkin?token=${token}`;
     const qrDataUrl = await QRCode.toDataURL(checkinUrl, { width: 300 }); // smaller image
 
