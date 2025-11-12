@@ -73,6 +73,7 @@ export async function GET(req) {
         email: booking.email,
         phone: booking.phone,
         paymentStatus: booking.paymentStatus,
+        ticketNumber: booking.ticketNumber,
         createdAt: booking.createdAt,
         checkedIn: booking.checkedIn || false,
         checkedInAt: booking.checkedInAt || null,

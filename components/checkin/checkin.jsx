@@ -63,7 +63,7 @@ export default function CheckInPage() {
 
           <div className="text-right">
             <p className="text-sm text-gray-500">Ticket No.</p>
-            <p className="text-lg font-semibold text-gray-800">{details.ticketNumber || "GT2025-001"}</p>
+            <p className="text-lg font-semibold text-gray-800">{details.ticketNumber }</p>
           </div>
         </div>
 

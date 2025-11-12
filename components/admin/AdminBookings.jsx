@@ -94,7 +94,6 @@ return (
         <tr className="bg-gray-100">
           <th className="border p-2 w-16">No</th>
           <th className="border p-2">Firstname</th>
-          <th className="border p-2">Lastname</th>
           <th className="border p-2">Email</th>
           <th className="border p-2">Phone</th>
           <th className="border p-2">Payment Status</th>
