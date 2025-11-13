@@ -43,6 +43,18 @@ const BookingSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    enrollmentnumber: {
+      type: String,
+      trim: true,
+    },
+    boarding: {
+      type: Boolean,
+      default: false,
+    },
+    campusbus: {
+      type: Boolean,
+      default: false,
+    },
     checkedIn: {
       type: Boolean,
       default: false,
