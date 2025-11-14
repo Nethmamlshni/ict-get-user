@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 export default function CheckInPage() {
- const [details, setDetails] = useState(null); 
- const [error, setError] = useState(null); 
- const [loading, setLoading] = useState(true);
+  const [details, setDetails] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
@@ -51,19 +51,23 @@ export default function CheckInPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+
       {/* Ticket Card */}
-      <div className="relative bg-white rounded-2xl shadow-lg max-w-lg w-full border border-gray-200 overflow-hidden">
+      <div
+        className={`relative bg-white rounded-2xl shadow-lg max-w-lg w-full overflow-hidden border 
+          ${details.paymentStatus?.toLowerCase() === "pending" ? "border-red-500" : "border-gray-200"}`}
+      >
 
         {/* Header Section */}
         <div className="flex justify-between items-center px-6 pt-6">
           <div className="text-left">
             <h2 className="text-2xl font-bold text-gray-800">🎉 Annual Get-Together</h2>
-            <p className="text-sm text-gray-500">Badull Sri Lanka</p>
+            <p className="text-sm text-gray-500">Badulla, Sri Lanka</p>
           </div>
 
           <div className="text-right">
             <p className="text-sm text-gray-500">Ticket No.</p>
-            <p className="text-lg font-semibold text-gray-800">{details.ticketNumber }</p>
+            <p className="text-lg font-semibold text-gray-800">{details.ticketNumber}</p>
           </div>
         </div>
 
@@ -75,13 +79,29 @@ export default function CheckInPage() {
           <p><strong>Attendee:</strong> {details.firstname} {details.lastname}</p>
           <p><strong>Email:</strong> {details.email}</p>
           <p><strong>Phone:</strong> {details.phone || "—"}</p>
-          <p><strong>Payment Status:</strong> {details.paymentStatus || "—" }</p>
+
+          {/* Payment Status */}
+          <p>
+            <strong>Payment Status:</strong>{" "}
+            <span
+              className={
+                details.paymentStatus?.toLowerCase() === "pending"
+                  ? "text-red-600 font-bold"
+                  : "text-green-700 font-semibold"
+              }
+            >
+              {details.paymentStatus || "—"}
+            </span>
+          </p>
+
           <p><strong>Registered On:</strong> {formattedCreated}</p>
 
           {/* Check-in Status */}
           <div
             className={`mt-3 p-3 rounded-lg text-sm font-semibold ${
-              details.checkedIn ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"
+              details.checkedIn
+                ? "bg-green-50 text-green-700"
+                : "bg-yellow-50 text-yellow-700"
             }`}
           >
             {details.checkedIn
@@ -90,7 +110,7 @@ export default function CheckInPage() {
           </div>
         </div>
 
-        {/* Footer note */}
+        {/* Footer */}
         <div className="px-6 pb-4 border-t border-gray-200 text-xs text-gray-500">
           Please present this digital ticket at the entrance.  
           If there is an issue, contact the event staff.

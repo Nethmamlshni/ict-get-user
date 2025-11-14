@@ -18,7 +18,7 @@ export async function POST(req) {
 
     // 2) Parse body
     const body = await req.json();
-    const { firstname, lastname, email, phone,  enrollmentnumber,year,boarding,campusbus} = body;
+    const { firstname, lastname, email, phone,  enrollmentnumber,boarding,campusbus} = body;
 
     if (!email) {
       return new Response(JSON.stringify({ error: "Email required" }), {
@@ -44,11 +44,10 @@ export async function POST(req) {
       paymentStatus: "pending",
       ticketNumber,
       enrollmentnumber,
-      year,
       boarding,
       campusbus
     });
-
+   console.log("Created booking:", booking);
     // 4) Create signed JWT token referencing booking id
     const token = jwt.sign(
       { id: booking._id.toString(), email },
