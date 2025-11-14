@@ -61,7 +61,7 @@ export default function BookForm() {
       <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
         <div className="relative h-40 sm:h-44 md:h-48">
           <Image
-            src="/Screenshot 2025-11-13 at 02.48.24.png"
+            src="/WhatsApp Image 2025-11-14 at 15.53.51.jpeg"
             alt="Design header"
             fill
             style={{ objectFit: "cover" }}
