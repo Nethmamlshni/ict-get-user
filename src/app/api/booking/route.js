@@ -64,15 +64,15 @@ export async function POST(req) {
     const qrDataUrl = await QRCode.toDataURL(checkinUrl, { width: 300 }); // smaller image
 
     // 6) Prepare Nodemailer transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT) || 587,
-      secure: Number(process.env.EMAIL_PORT) === 465, // true for 465, false for 587
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+   const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  secure: Number(process.env.EMAIL_PORT) === 465, // SSL for 465, TLS for 587
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
     // Optional: verify transporter (will throw if SMTP wrong)
     try {
@@ -107,9 +107,6 @@ export async function POST(req) {
                         <tr>
                           <td style="font-size:18px;font-weight:600;color:#0f172a;padding-bottom:8px;">
                             Hi ${firstname || "Guest"},
-                          </td>
-                          <td align="right" style="font-size:12px;color:#9ca3af;">
-                            GateTogether
                           </td>
                         </tr>
                       </table>
@@ -146,7 +143,11 @@ export async function POST(req) {
                       <!-- Signature -->
                       <p style="margin:18px 0 0;color:#475569;font-size:14px;line-height:1.4;">
                         Regards,<br/>
-                        <strong style="color:#0f172a;">GateTogether</strong>
+                        <strong style="color:#0f172a;">
+                        Organizing Committee<br/>
+                       InfoSphere 2.0<br/>
+                         The Starry Night
+                       </strong>
                       </p>
                     </td>
                   </tr>
