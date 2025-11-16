@@ -22,8 +22,10 @@ const validateLocalPart = (local) => {
 export default function BookingDetailsPage() {
   const router = useRouter();
 
-  // controlled form state
-  const [localPart, setLocalPart] = useState("");
+  // separate states for lookup and the main form's email local part
+  const [lookupLocalPart, setLookupLocalPart] = useState("");
+  const [formLocalPart, setFormLocalPart] = useState("");
+
   const [lookupEmail, setLookupEmail] = useState("");
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
@@ -37,9 +39,10 @@ export default function BookingDetailsPage() {
 
   const makeFullEmail = (local) => `${local}@${FIXED_DOMAIN}`;
 
+  // Lookup (optional)
   const handleLookup = (e) => {
     e?.preventDefault();
-    const local = (localPart || "").trim();
+    const local = (lookupLocalPart || "").trim();
     const err = validateLocalPart(local);
     if (err) {
       setEmailError(err);
@@ -60,7 +63,7 @@ export default function BookingDetailsPage() {
     setTransport(typeof data.campusbus !== "undefined" ? String(data.campusbus) : "");
     setHostel(typeof data.boarding !== "undefined" ? String(data.boarding) : "");
     setpaymentStatus(data.paymentStatus !== undefined ? data.paymentStatus : "");
-    if (data.email) setLocalPart((data.email || "").split("@")[0] || "");
+    if (data.email) setFormLocalPart((data.email || "").split("@")[0] || "");
     toast.success("Form prefilled with saved details.");
   };
 
@@ -69,7 +72,7 @@ export default function BookingDetailsPage() {
     setSubmitting(true);
     setEmailError("");
 
-    const local = (localPart || "").trim();
+    const local = (formLocalPart || "").trim(); // use formLocalPart here
     const localErr = validateLocalPart(local);
     if (localErr) {
       setEmailError(localErr);
@@ -125,8 +128,9 @@ export default function BookingDetailsPage() {
 
       toast.success("Booking successful! QR sent to your email.");
       // reset
-      setLocalPart("");
+      setLookupLocalPart("");
       setLookupEmail("");
+      setFormLocalPart("");
       setFirstname("");
       setLastname("");
       setPhone("");
@@ -153,14 +157,15 @@ export default function BookingDetailsPage() {
         <div className="p-5 space-y-4">
           <h3 className="text-base ">If you have reserved tickets, you can get the tickets from your email</h3>
 
+          {/* Lookup form (optional) */}
           <form onSubmit={handleLookup} className=" items-end">
             <div >
-              <label className="text-xs font-semibold text-gray-500 block mb-1">Email</label>
+              <label className="text-xs font-semibold text-gray-500 block mb-1">Email (lookup)</label>
               <div className="flex">
                 <input
-                  value={localPart}
-                  onChange={(e) => setLocalPart((e.target.value || "").replace(/\s+/g, "").split("@")[0])}
-                  name="localPart"
+                  value={lookupLocalPart}
+                  onChange={(e) => setLookupLocalPart((e.target.value || "").replace(/\s+/g, "").split("@")[0])}
+                  name="lookupLocalPart"
                   className=" p-2 border rounded-l-md"
                   placeholder="email"
                 />
@@ -179,7 +184,10 @@ export default function BookingDetailsPage() {
           ) : (
             <div className="text-sm text-gray-500">No lookup performed yet.</div>
           )}
+
           <h3 className="text-base   mt-4">If you have not booked tickets, fill the form first</h3>
+
+          {/* Main booking form — uses formLocalPart */}
           <form onSubmit={handleSubmit} className="space-y-3" noValidate>
             <div>
               <label className="text-xs font-semibold text-emerald-600 block mb-1">First name</label>
@@ -195,14 +203,17 @@ export default function BookingDetailsPage() {
               <label className="text-xs font-semibold text-emerald-600 block mb-1">Email</label>
               <div className="flex">
                 <input
-                  value={localPart}
-                  onChange={(e) => setLocalPart((e.target.value || "").replace(/\s+/g, "").split("@")[0])}
-                  name="localPart"
+                  value={formLocalPart}
+                  onChange={(e) => setFormLocalPart((e.target.value || "").replace(/\s+/g, "").split("@")[0])}
+                  name="formLocalPart"
                   required
                   className="flex-1 p-2 border rounded-l-md"
+                  placeholder="email"
                 />
                 <div className="px-3 py-2 bg-gray-100 border rounded-r-md select-none">@{FIXED_DOMAIN}</div>
               </div>
+              {/* show per-field error */}
+              {emailError && <p className="text-red-600 text-xs mt-1">{emailError}</p>}
             </div>
 
             <div>
